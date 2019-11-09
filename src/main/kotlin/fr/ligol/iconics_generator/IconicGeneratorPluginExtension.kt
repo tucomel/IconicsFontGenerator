@@ -1,14 +1,14 @@
 package fr.ligol.iconics_generator
  
 open class IconicGeneratorPluginExtension(
-    var name: String = "iconics",
-    var code: String = "ico",
-    var versionName: String = "1.0.0",
-    var versionCode: String = "1",
-    var author: String = "",
+    var name: String = "FontEOnline",
+    var code: String = "eof",
+    var versionName: String = "1.3",
+    var versionCode: String = "1.3",
+    var author: String = "Arthur Melo",
     var url: String = "",
-    var description: String = "",
-    var license: String = "",
-    var licenseUrl: String = "",
-    var fontasticApiKey: String = ""
+    var description: String = "Entregador Online SVG Font",
+    var license: String = "SIL OFL 1.1",
+    var licenseUrl: String = "http://scripts.sil.org/OFL",
+    var fontasticApiKey: String = "PivnYyGqT8HNLcjxrpBCDi"
 )

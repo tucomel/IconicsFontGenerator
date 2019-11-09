@@ -1,74 +1,96 @@
 package fr.ligol.iconics_generator
 
-import com.squareup.kotlinpoet.*
+import com.squareup.javapoet.ClassName
+import com.squareup.javapoet.FieldSpec
+import com.squareup.javapoet.MethodSpec
+import com.squareup.javapoet.TypeSpec
+import javax.lang.model.element.Modifier
 
-class EnumGenerator(private val configuration: IconicGeneratorPluginExtension,
-                    private val items : Map<String, String>) {
+class EnumGenerator(private val configuration: IconicGeneratorPluginExtension, private val items: Map<String, String>) {
 
     fun build(): TypeSpec {
-        val builder =  TypeSpec.enumBuilder("Icon")
+        val builder = TypeSpec.enumBuilder("Icon")
                 .addSuperinterface(iiconType)
-                .addFunction(createGetCharacterFunction())
-                .addFunction(createGetFormattedNameFunction())
-                .addFunction(createGetNameFunction())
-                .addFunction(createGetTypefaceFunction())
-                .primaryConstructor(FunSpec.constructorBuilder()
-                        .addModifiers(KModifier.PRIVATE)
-                        .addParameter("character", Char::class)
+                .addModifiers(Modifier.PUBLIC)
+                .addField(createTypeFaceField())
+                .addField(createCharacterField())
+                .addMethod(createGetCharacterFunction())
+                .addMethod(createGetFormattedNameFunction())
+                .addMethod(createGetNameFunction())
+                .addMethod(createGetTypefaceFunction())
+                .addMethod(MethodSpec.constructorBuilder()
+                        .addModifiers(Modifier.PRIVATE)
+                        .addParameter(Char::class.java, "character")
+                        .addStatement("this.character = character")
                         .build())
 
         createEnumValue(builder)
         return builder.build()
     }
 
-    private fun createEnumValue(builder: TypeSpec.Builder) {
-        for (item in items.entries) {
-            val name = item.key.replace(".icon", configuration.code).replace("-", "_")
-            val value = item.value.replace("\\e", "\\ue")
-            val code = Integer.parseInt(value.substring(1, value.length - 1).substring(2), 16)
-            builder.addEnumConstant(name, TypeSpec.anonymousClassBuilder("\'%L\'", code.toChar())
-                    .build())
-        }
-    }
-
-    private fun createGetFormattedNameFunction(): FunSpec {
-        return FunSpec.builder("getFormattedName")
-                .addModifiers(KModifier.OVERRIDE)
-                .returns(String::class)
-                .addStatement("return \"{\$name}\"")
+    private fun createTypeFaceField(): FieldSpec? {
+        return FieldSpec.builder(ClassGenerator.itypefaceType, "typeface")
+                .initializer("null")
+                .addModifiers(Modifier.STATIC, Modifier.PRIVATE)
                 .build()
     }
 
-    private fun createGetCharacterFunction(): FunSpec {
-        return FunSpec.builder("getCharacter")
-                .addModifiers(KModifier.OVERRIDE)
-                .returns(Char::class)
+    private fun createCharacterField(): FieldSpec? {
+        return FieldSpec.builder(Char::class.java, "character")
+                .build()
+    }
+
+    private fun createEnumValue(builder: TypeSpec.Builder) {
+        for (item in items.entries) {
+            val name = item.key.replace(".eo", configuration.code).replace("-", "_")
+            val value = item.value.replace("\\e", "\\ue")
+            val code = Integer.parseInt(value.substring(1, value.length - 1).substring(2), 16)
+            builder.addEnumConstant(name, TypeSpec.anonymousClassBuilder("'\\u\$L\'", Integer.toHexString(code)).build())
+        }
+    }
+
+    private fun createGetFormattedNameFunction(): MethodSpec {
+        return MethodSpec.methodBuilder("getFormattedName")
+                .addAnnotation(Override::class.java)
+                .returns(String::class.java)
+                .addModifiers(Modifier.PUBLIC)
+                .addStatement("return \"{\" + name() + \"}\"")
+                .build()
+    }
+
+    private fun createGetCharacterFunction(): MethodSpec {
+        return MethodSpec.methodBuilder("getCharacter")
+                .addAnnotation(Override::class.java)
+                .returns(Char::class.java)
+                .addModifiers(Modifier.PUBLIC)
                 .addStatement("return character")
                 .build()
     }
 
-    private fun createGetNameFunction(): FunSpec {
-        return FunSpec.builder("getName")
-                .addModifiers(KModifier.OVERRIDE)
-                .returns(String::class)
-                .addStatement("return name")
+    private fun createGetNameFunction(): MethodSpec {
+        return MethodSpec.methodBuilder("getName")
+                .addAnnotation(Override::class.java)
+                .returns(String::class.java)
+                .addModifiers(Modifier.PUBLIC)
+                .addStatement("return name()")
                 .build()
     }
 
-    private fun createGetTypefaceFunction(): FunSpec {
-        return FunSpec.builder("getTypeface")
-                .addModifiers(KModifier.OVERRIDE)
+    private fun createGetTypefaceFunction(): MethodSpec {
+        return MethodSpec.methodBuilder("getTypeface")
+                .addAnnotation(Override::class.java)
                 .returns(itypefaceType)
-                .beginControlFlow("if (typeface2 == null)")
-                .addStatement("typeface2 = %s()".format(configuration.name))
+                .addModifiers(Modifier.PUBLIC)
+                .beginControlFlow("if (typeface == null)")
+                .addStatement("typeface = new %s()".format(configuration.name))
                 .endControlFlow()
-                .addStatement("return typeface2 as ITypeface")
+                .addStatement("return typeface")
                 .build()
     }
 
     companion object {
-        val iiconType = ClassName("com.mikepenz.iconics.typeface", "IIcon")
-        val itypefaceType = ClassName("com.mikepenz.iconics.typeface", "ITypeface")
+        val iiconType = ClassName.get("br.com.entregadoronline.support.widget.iconic.typeface", "IIcon")
+        val itypefaceType = ClassName.get("br.com.entregadoronline.support.widget.iconic.typeface", "ITypeface")
     }
 
 }

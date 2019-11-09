@@ -1,46 +1,50 @@
 package fr.ligol.iconics_generator
 
-import com.squareup.kotlinpoet.*
-import java.util.HashMap
+import com.squareup.javapoet.*
+import java.util.*
+import javax.lang.model.element.Modifier
 
 
+class ClassGenerator(private val configuration: IconicGeneratorPluginExtension, private val items: Map<String, String>) {
+    fun build(): JavaFile {
 
-class ClassGenerator(private val configuration: IconicGeneratorPluginExtension,
-                     private val items : Map<String, String>) {
-    fun build(): FileSpec {
-        val v: String
-        return FileSpec.builder(packageName, configuration.name)
-                .addType(TypeSpec.classBuilder(configuration.name)
-                        .primaryConstructor(FunSpec.constructorBuilder().build())
-                        .addSuperinterface(itypefaceType)
-                        .companionObject(createCompanionObject())
-                        .addFunction(createGetCharactersFunction())
-                        .addFunction(createGetIconsFunction())
-                        .addFunction(createOverrideFunctionReturningDefaultString("getMappingPrefix", configuration.code))
-                        .addFunction(createOverrideFunctionReturningDefaultString("getFontName", configuration.name))
-                        .addFunction(createOverrideFunctionReturningDefaultString("getVersion", configuration.versionName))
-                        .addFunction(createOverrideFunctionReturningDefaultString("getAuthor", configuration.author))
-                        .addFunction(createOverrideFunctionReturningDefaultString("getUrl", configuration.url))
-                        .addFunction(createOverrideFunctionReturningDefaultString("getDescription", configuration.description))
-                        .addFunction(createOverrideFunctionReturningDefaultString("getLicense", configuration.license))
-                        .addFunction(createOverrideFunctionReturningDefaultString("getLicenseUrl", configuration.licenseUrl))
-                        .addFunction(createIconCountFunction())
-                        .addFunction(createIconFunction())
-                        .addFunction(createGetTypefaceFunction())
-                        .addType(EnumGenerator(configuration, items).build())
-                        .build())
+        val classfile = TypeSpec.classBuilder(configuration.name)
+                .addJavadoc("Fonte que possui todos os icones (single color) do app Entregador Online.")
+                .addSuperinterface(itypefaceType)
+                .addModifiers(Modifier.PUBLIC)
+                .addFields(createCompanionObject())
+                .addMethod(createGetCharactersFunction())
+                .addMethod(createGetIconsFunction())
+                .addMethod(createOverrideFunctionReturningDefaultString("getMappingPrefix", configuration.code))
+                .addMethod(createOverrideFunctionReturningDefaultString("getFontName", configuration.name))
+                .addMethod(createOverrideFunctionReturningDefaultString("getVersion", configuration.versionName))
+                .addMethod(createOverrideFunctionReturningDefaultString("getAuthor", configuration.author))
+                .addMethod(createOverrideFunctionReturningDefaultString("getUrl", configuration.url))
+                .addMethod(createOverrideFunctionReturningDefaultString("getDescription", configuration.description))
+                .addMethod(createOverrideFunctionReturningDefaultString("getLicense", configuration.license))
+                .addMethod(createOverrideFunctionReturningDefaultString("getLicenseUrl", configuration.licenseUrl))
+                .addMethod(createIconCountFunction())
+                .addMethod(createIconFunction())
+                .addMethod(createGetTypefaceFunction())
+                .addType(EnumGenerator(configuration, items).build())
                 .build()
+
+
+        val javaFile = JavaFile.builder(packageName, classfile).build()
+        javaFile.writeTo(System.out)
+        return javaFile
     }
 
-    private fun createGetTypefaceFunction(): FunSpec {
-        return FunSpec.builder("getTypeface")
-                .addModifiers(KModifier.OVERRIDE, KModifier.PUBLIC)
-                .addParameter("context", contextType)
-                .returns(typefaceType.asNullable())
+    private fun createGetTypefaceFunction(): MethodSpec {
+        return MethodSpec.methodBuilder("getTypeface")
+                .addAnnotation(Override::class.java)
+                .addModifiers(Modifier.PUBLIC)
+                .addParameter(contextType, "context")
+                .returns(typefaceType)
                 .beginControlFlow("if (typeface == null)")
                 .beginControlFlow("try")
                 .addStatement("typeface = Typeface.createFromAsset(context.getAssets(), \"fonts/\" + TTF_FILE)")
-                .nextControlFlow("catch (e: Exception)")
+                .nextControlFlow("catch (Exception ex)")
                 .addStatement("return null")
                 .endControlFlow()
                 .endControlFlow()
@@ -48,91 +52,91 @@ class ClassGenerator(private val configuration: IconicGeneratorPluginExtension,
                 .build()
     }
 
-    private fun createIconFunction(): FunSpec {
-        return FunSpec.builder("getIcon")
-                .addModifiers(KModifier.OVERRIDE, KModifier.PUBLIC)
-                .addParameter("key", String::class)
+    private fun createIconFunction(): MethodSpec {
+        return MethodSpec.methodBuilder("getIcon")
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(Override::class.java)
+                .addParameter(String::class.java, "key")
                 .returns(iiconType)
-                .addCode("return Icon.valueOf(key)")
+                .addStatement("return Icon.valueOf(key)")
                 .build()
     }
 
-    private fun createIconCountFunction(): FunSpec {
-        return FunSpec.builder("getIconCount")
-                .addModifiers(KModifier.OVERRIDE)
-                .returns(Int::class)
-                .addStatement("return mChars!!.size")
+    private fun createIconCountFunction(): MethodSpec {
+        return MethodSpec.methodBuilder("getIconCount")
+                .addAnnotation(Override::class.java)
+                .addModifiers(Modifier.PUBLIC)
+                .returns(Int::class.java)
+                .addStatement("return mChars.size()")
                 .build()
     }
 
-    private fun createGetIconsFunction(): FunSpec {
-        return FunSpec.builder("getIcons")
-                .addModifiers(KModifier.OVERRIDE)
+    private fun createGetIconsFunction(): MethodSpec {
+        return MethodSpec.methodBuilder("getIcons")
+                .addAnnotation(Override::class.java)
                 .returns(stringCollectionType)
-                .addStatement("val icons = %T<String>()", linkedListType)
-                .beginControlFlow("for (value in Icon.values())")
-                .addStatement("icons.add(value.name)")
+                .addModifiers(Modifier.PUBLIC)
+                .addStatement("\$T icons = new \$T<>()", stringCollectionType, linkedListType)
+                .beginControlFlow("for (Icon value : Icon.values())")
+                .addStatement("icons.add(value.name())")
                 .endControlFlow()
                 .addStatement("return icons")
                 .build()
     }
 
-    private fun createGetCharactersFunction(): FunSpec {
-        return FunSpec.builder("getCharacters")
-                .addModifiers(KModifier.OVERRIDE)
+    private fun createGetCharactersFunction(): MethodSpec {
+        return MethodSpec.methodBuilder("getCharacters")
+                .addAnnotation(Override::class.java)
                 .returns(charHashMapType)
+                .addModifiers(Modifier.PUBLIC)
                 .beginControlFlow("if (mChars == null)")
-                .addStatement("val aChars = %T()", charHashMapType)
-                .beginControlFlow("for (v in Icon.values())")
-                .addStatement("aChars.put(v.name, v.character)")
+                .addStatement("\$T aChars = new \$T()", charHashMapType, charHashMapType)
+                .beginControlFlow("for (Icon v : Icon.values())")
+                .addStatement("aChars.put(v.name(), v.character)")
                 .endControlFlow()
                 .addStatement("mChars = aChars")
                 .endControlFlow()
-                .addStatement("return mChars!!")
+                .addStatement("return mChars")
                 .build()
     }
 
-    private fun createCompanionObject() : TypeSpec {
-        return TypeSpec.companionObjectBuilder()
-                .addProperty(PropertySpec.builder("TTF_FILE", String::class)
-                        .initializer("\"%s-font-v%s.ttf\"".format(configuration.name.toLowerCase(), configuration.versionName))
-                        .addModifiers(KModifier.CONST, KModifier.PRIVATE)
-                        .build())
-                .addProperty(PropertySpec.builder("typeface", typefaceType.asNullable())
-                        .mutable(true)
-                        .initializer("null")
-                        .addModifiers(KModifier.PRIVATE)
-                        .build())
-                .addProperty(PropertySpec.builder("mChars", charHashMapType.asNullable())
-                        .mutable(true)
-                        .initializer("null")
-                        .addModifiers(KModifier.PRIVATE)
-                        .build())
-                .addProperty(PropertySpec.builder("typeface2", itypefaceType.asNullable())
-                        .mutable(true)
-                        .initializer("null")
-                        .addModifiers(KModifier.PRIVATE)
-                        .build())
+    private fun createCompanionObject(): List<FieldSpec>? {
+        val list = ArrayList<FieldSpec>()
+        var field = FieldSpec.builder(String::class.java, "TTF_FILE")
+                .initializer("\"%s-%s.ttf\"".format(configuration.name.toLowerCase(), configuration.versionName))
+                .addModifiers(Modifier.FINAL, Modifier.STATIC, Modifier.PRIVATE)
                 .build()
+        list.add(field)
+        field = FieldSpec.builder(typefaceType, "typeface")
+                .initializer("null")
+                .addModifiers(Modifier.STATIC, Modifier.PRIVATE)
+                .build()
+        list.add(field)
+        field = FieldSpec.builder(charHashMapType, "mChars")
+                .initializer("null")
+                .addModifiers(Modifier.STATIC, Modifier.PRIVATE)
+                .build()
+        list.add(field)
+        return list
     }
 
-    private fun createOverrideFunctionReturningDefaultString(name: String, value: String): FunSpec {
-        return FunSpec.builder(name)
-                .addModifiers(KModifier.OVERRIDE)
-                .returns(String::class)
-                .addStatement("return %S", value)
+    private fun createOverrideFunctionReturningDefaultString(name: String, value: String): MethodSpec {
+        return MethodSpec.methodBuilder(name)
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(Override::class.java)
+                .returns(String::class.java)
+                .addStatement("return \$S", value)
                 .build()
     }
 
     companion object {
-        val packageName = "com.mikepenz.manakin_typeface_library"
-        val charHashMapType = ParameterizedTypeName.get(HashMap::class, String::class, Character::class)
-        val stringCollectionType = ParameterizedTypeName.get(Collection::class, String::class)
-        val contextType = ClassName("android.content", "Context")
-        val typefaceType = ClassName("android.graphics", "Typeface")
-        val itypefaceType = ClassName("com.mikepenz.iconics.typeface", "ITypeface")
-        val stringType = ClassName("kotlin", "String")
-        val iiconType = ClassName("com.mikepenz.iconics.typeface", "IIcon")
-        val linkedListType = ClassName("java.util", "LinkedList")
+        val packageName = "br.com.entregadoronline.font"
+        val charHashMapType = ParameterizedTypeName.get(HashMap::class.java, String::class.java, Character::class.java)
+        val stringCollectionType = ParameterizedTypeName.get(Collection::class.java, String::class.java)
+        val contextType = ClassName.get("android.content", "Context")
+        val typefaceType = ClassName.get("android.graphics", "Typeface")
+        val itypefaceType = ClassName.get("br.com.entregadoronline.support.widget.iconic.typeface", "ITypeface")
+        val iiconType = ClassName.get("br.com.entregadoronline.support.widget.iconic.typeface", "IIcon")
+        val linkedListType = ClassName.get("java.util", "LinkedList")
     }
 }

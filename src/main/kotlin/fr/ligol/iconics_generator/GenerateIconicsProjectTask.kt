@@ -1,49 +1,25 @@
 package fr.ligol.iconics_generator
 
-import com.squareup.kotlinpoet.FileSpec
-import java.io.IOException
+import com.squareup.javapoet.JavaFile
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.ResponseBody
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.TaskAction
 import java.io.File
+import java.io.IOException
 
 
-open class GenerateIconicsProjectTask : org.gradle.api.DefaultTask() {
+open class GenerateIconicsProjectTask {
 
-    init {
-        group = "help"
-    }
 
-    val extension: IconicGeneratorPluginExtension
-        @Input get() {
-            return project.extensions.findByType(IconicGeneratorPluginExtension::class.java)?: IconicGeneratorPluginExtension()
-        }
-
-    @TaskAction
-    fun generateIconics() {
-        val fontasticApiKey = extension.fontasticApiKey
-        val parser = CssParser(downloadFile("https://file.myfontastic.com/$fontasticApiKey/icons.css")!!.string())
-        val itemMap = parser.getFontItems()
-
-        val file = ClassGenerator(extension, itemMap).build()
-        parser.getTTFUrl()?.let {
-            val ttfFile = downloadFile(it)
-            createFolderAndFile(extension, file, ttfFile!!.bytes())
-        }
-        return
-    }
-
-    fun createFolderAndFile(configuration: IconicGeneratorPluginExtension, file: FileSpec, ttfByteArray: ByteArray) {
+    fun createFolderAndFile(configuration: IconicGeneratorPluginExtension, file: JavaFile, ttfByteArray: ByteArray) {
         val fileGenerator = FileGenerator(configuration)
         val rootFolder = File("%s-font/".format(configuration.name.toLowerCase()))
         val mainFolder = File(rootFolder.path + "/src/main/")
         val fontFolder = File(mainFolder.path + "/assets/fonts")
         val resFolder = File(mainFolder.path + "/res/values")
-        val codeFolder = File(mainFolder.path + "/java/com/mikepenz/%s_typeface_library".format(configuration.name.toLowerCase()))
-        val codeFile = File(codeFolder.path + "/%s.kt".format(configuration.name))
-        val ttfFile = File(fontFolder.path + "/%s-font-v%s.ttf".format(configuration.name.toLowerCase(), configuration.versionName))
+        val codeFolder = File(mainFolder.path + "/java/br/com/entregadoronline/support/widget/iconic/typeface/%s".format(configuration.name.toLowerCase()))
+        val codeFile = File(codeFolder.path + "/%s.java".format(configuration.name))
+        val ttfFile = File(fontFolder.path + "/%s-%s.ttf".format(configuration.name.toLowerCase(), configuration.versionName))
 
         rootFolder.mkdirs()
         mainFolder.mkdirs()
