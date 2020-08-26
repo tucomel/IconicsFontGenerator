@@ -31,7 +31,7 @@ class ClassGenerator(private val configuration: IconicGeneratorPluginExtension, 
 
 
         val javaFile = JavaFile.builder(packageName, classfile).build()
-        javaFile.writeTo(System.out)
+        //javaFile.writeTo(System.out)
         return javaFile
     }
 

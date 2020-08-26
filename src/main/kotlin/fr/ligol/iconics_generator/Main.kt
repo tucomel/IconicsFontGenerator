@@ -1,6 +1,6 @@
 package fr.ligol.iconics_generator
 
-object HelloWorld {
+object GenerateFont {
     @JvmStatic
     fun main(args: Array<String>) {
         val value = "\"\\e018\"".replace("\\e", "\\ue")

@@ -33,6 +33,16 @@ open class GenerateIconicsProjectTask {
         fileGenerator.generateFile("template/src/main/AndroidManifest.xml", mainFolder.path + "/AndroidManifest.xml")
         fileGenerator.generateFile("template/src/main/res/values/font_addon.xml", resFolder.path + "/font_addon.xml")
 
+        println()
+        println()
+        println()
+        println("*******************************")
+        println("* java file sample start here *")
+        println("*******************************")
+        println()
+        println()
+        println()
+
         file.writeTo(System.out)
         codeFile.writeText(file.toString())
         ttfFile.writeBytes(ttfByteArray)

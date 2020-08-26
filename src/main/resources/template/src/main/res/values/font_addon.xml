@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="define_font_{fontName}">com.mikepenz.{fontNameLower}_typeface_library.{fontName}</string>
+    <!--<string name="define_font_{fontName}">com.mikepenz.{fontNameLower}_typeface_library.{fontName}</string>-->
+    <string name="define_font_{fontName}">br.com.entregadoronline.support.widget.iconic.typeface.{fontName}</string>
 </resources>
