@@ -4,8 +4,7 @@ import com.squareup.javapoet.ClassName
 import com.squareup.javapoet.FieldSpec
 import com.squareup.javapoet.MethodSpec
 import com.squareup.javapoet.TypeSpec
-import org.gradle.internal.impldep.org.eclipse.jgit.annotations.NonNull
-import javax.annotation.Nullable
+import org.jetbrains.annotations.NotNull
 import javax.lang.model.element.Modifier
 
 class EnumGenerator(private val configuration: IconicGeneratorPluginExtension, private val items: Map<String, String>) {
@@ -45,7 +44,7 @@ class EnumGenerator(private val configuration: IconicGeneratorPluginExtension, p
     private fun createEnumValue(builder: TypeSpec.Builder) {
         for (item in items.entries) {
             val name = item.key.replace(".eof", configuration.code).replace("-", "_")
-            val value = item.value.replace("\\e", "\\ue");
+            val value = item.value.replace("\\e", "\\ue")
             val code = Integer.parseInt(value.substring(1, value.length - 1).substring(2), 16)
             builder.addEnumConstant(name, TypeSpec.anonymousClassBuilder("'\\u\$L\'", Integer.toHexString(code)).build())
         }
@@ -54,7 +53,7 @@ class EnumGenerator(private val configuration: IconicGeneratorPluginExtension, p
     private fun createGetFormattedNameFunction(): MethodSpec {
         return MethodSpec.methodBuilder("getFormattedName")
                 .addAnnotation(Override::class.java)
-                .addAnnotation(NonNull::class.java)
+                .addAnnotation(NotNull::class.java)
                 .returns(String::class.java)
                 .addModifiers(Modifier.PUBLIC)
                 .addStatement("return \"{\" + name() + \"}\"")
@@ -73,7 +72,7 @@ class EnumGenerator(private val configuration: IconicGeneratorPluginExtension, p
     private fun createGetNameFunction(): MethodSpec {
         return MethodSpec.methodBuilder("getName")
                 .addAnnotation(Override::class.java)
-                .addAnnotation(NonNull::class.java)
+                .addAnnotation(NotNull::class.java)
                 .returns(String::class.java)
                 .addModifiers(Modifier.PUBLIC)
                 .addStatement("return name()")
@@ -83,7 +82,6 @@ class EnumGenerator(private val configuration: IconicGeneratorPluginExtension, p
     private fun createGetTypefaceFunction(): MethodSpec {
         return MethodSpec.methodBuilder("getTypeface")
                 .addAnnotation(Override::class.java)
-                .addAnnotation(Nullable::class.java)
                 .returns(itypefaceType)
                 .addModifiers(Modifier.PUBLIC)
                 .beginControlFlow("if (typeface == null)")

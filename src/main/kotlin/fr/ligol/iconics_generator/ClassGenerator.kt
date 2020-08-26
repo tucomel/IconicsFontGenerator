@@ -1,6 +1,7 @@
 package fr.ligol.iconics_generator
 
 import com.squareup.javapoet.*
+import org.jetbrains.annotations.Nullable
 import java.util.*
 import javax.lang.model.element.Modifier
 
@@ -38,6 +39,7 @@ class ClassGenerator(private val configuration: IconicGeneratorPluginExtension, 
     private fun createGetTypefaceFunction(): MethodSpec {
         return MethodSpec.methodBuilder("getTypeface")
                 .addAnnotation(Override::class.java)
+                .addAnnotation(Nullable::class.java)
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(contextType, "context")
                 .returns(typefaceType)

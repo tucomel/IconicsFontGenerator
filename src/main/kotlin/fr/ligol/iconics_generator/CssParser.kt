@@ -12,7 +12,7 @@ class CssParser(private val cssFile: String) {
 
     fun getFontItems(): Map<String, String> {
         val map = LinkedHashMap<String, String>()
-        val configuration = IconicGeneratorPluginExtension();
+        val configuration = IconicGeneratorPluginExtension()
         for (styleRule in aCSS!!.allStyleRules) {
             if (styleRule.hasSelectors()) {
                 if (styleRule.allSelectors[0].hasMembers()) {
