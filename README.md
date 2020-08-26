@@ -1,4 +1,4 @@
-# .java SOURCE FILES GENERATION USING KOTLINPOET LIB
+# Generate .java sources using com.squareup:javapoet
 
 # IconicsFontGenerator
 
