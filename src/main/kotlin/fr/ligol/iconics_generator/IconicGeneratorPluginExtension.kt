@@ -3,8 +3,8 @@ package fr.ligol.iconics_generator
 open class IconicGeneratorPluginExtension(
         var name: String = "FontEOnline",
         var code: String = "eof",
-        var versionName: String = "1.4",
-        var versionCode: String = "1.4",
+        var versionName: String = "2.4",
+        var versionCode: String = "2.4",
         var author: String = "Arthur Melo",
         var url: String = "",
         var description: String = "Entregador Online SVG Font",

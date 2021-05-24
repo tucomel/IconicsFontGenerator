@@ -132,7 +132,7 @@ class ClassGenerator(private val configuration: IconicGeneratorPluginExtension, 
     }
 
     companion object {
-        val packageName = "br.com.entregadoronline.font"
+        val packageName = "br.com.entregadoronline.support.widget.iconic.typeface"
         val charHashMapType = ParameterizedTypeName.get(HashMap::class.java, String::class.java, Character::class.java)
         val stringCollectionType = ParameterizedTypeName.get(Collection::class.java, String::class.java)
         val contextType = ClassName.get("android.content", "Context")

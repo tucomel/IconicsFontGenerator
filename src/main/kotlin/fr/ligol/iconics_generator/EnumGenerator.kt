@@ -4,7 +4,7 @@ import com.squareup.javapoet.ClassName
 import com.squareup.javapoet.FieldSpec
 import com.squareup.javapoet.MethodSpec
 import com.squareup.javapoet.TypeSpec
-import org.jetbrains.annotations.NotNull
+import androidx.annotation.Nonnull
 import javax.lang.model.element.Modifier
 
 class EnumGenerator(private val configuration: IconicGeneratorPluginExtension, private val items: Map<String, String>) {
@@ -42,9 +42,10 @@ class EnumGenerator(private val configuration: IconicGeneratorPluginExtension, p
     }
 
     private fun createEnumValue(builder: TypeSpec.Builder) {
+        val firstletter = configuration.code.substring(0, 1)
         for (item in items.entries) {
-            val name = item.key.replace(".eof", configuration.code).replace("-", "_")
-            val value = item.value.replace("\\e", "\\ue")
+            val name = item.key.replace(".${configuration.code}", configuration.code).replace("-", "_")
+            val value = item.value.replace("\\${firstletter}", "\\u${firstletter}")
             val code = Integer.parseInt(value.substring(1, value.length - 1).substring(2), 16)
             builder.addEnumConstant(name, TypeSpec.anonymousClassBuilder("'\\u\$L\'", Integer.toHexString(code)).build())
         }
@@ -53,7 +54,7 @@ class EnumGenerator(private val configuration: IconicGeneratorPluginExtension, p
     private fun createGetFormattedNameFunction(): MethodSpec {
         return MethodSpec.methodBuilder("getFormattedName")
                 .addAnnotation(Override::class.java)
-                .addAnnotation(NotNull::class.java)
+                .addAnnotation(Nonnull::class.java)
                 .returns(String::class.java)
                 .addModifiers(Modifier.PUBLIC)
                 .addStatement("return \"{\" + name() + \"}\"")
